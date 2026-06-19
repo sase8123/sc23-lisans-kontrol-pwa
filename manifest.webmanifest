@@ -1,0 +1,15 @@
+{
+  "name": "SC23 Lisans Kontrol",
+  "short_name": "SC23 Lisans",
+  "description": "Supabase lisans ve proje yönetim uygulaması",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08111f",
+  "theme_color": "#08111f",
+  "lang": "tr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
