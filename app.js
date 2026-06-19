@@ -95,8 +95,9 @@ async function selectProject() {
     const tables = await request(`api/tables?projectRef=${encodeURIComponent(state.projectRef)}`);
     const select = $("tableSelect");
     select.innerHTML = "";
-    tables.forEach(table => select.add(new Option(tableTitle(table), table)));
-    if (tables.length) await loadRows();
+    const shownTables = visibleTables(tables);
+    shownTables.forEach(table => select.add(new Option(tableTitle(table), table)));
+    if (shownTables.length) await loadRows();
   });
 }
 
@@ -224,6 +225,22 @@ function runtimeStatus(row) {
 }
 function statusRank(status) { return ["Admin", "Aktif", "Deneme", "Bekleyen", "Süresi Dolan", "Pasif"].indexOf(status); }
 function statusClass(status) { return ({ Admin: "admin", Aktif: "active", Deneme: "trial", Bekleyen: "pending", "Süresi Dolan": "expired", Pasif: "revoked" })[status] || ""; }
+function visibleTables(tables) {
+  const allowed = tables.filter(name => {
+    const value = `${name}`.toLocaleLowerCase("tr");
+    if (value.startsWith("rpc")) return false;
+    if (value.includes("rprcls")) return false;
+    if (value.includes("auto_enable")) return false;
+    return value.startsWith("sc23_")
+      || value.includes("license")
+      || value.includes("lisans")
+      || value.includes("sartname")
+      || value.includes("şartname")
+      || value.includes("terms")
+      || value.includes("update");
+  });
+  return allowed.length ? allowed : tables.filter(name => !`${name}`.toLocaleLowerCase("tr").startsWith("rpc"));
+}
 function tableTitle(name) {
   return ({ sc23_license_machines: "Lisans Makineleri", sc23_license_events: "Lisans Olayları", sc23_terms_archive: "Şartname Arşivi", sc23_sartname_kabulleri: "Şartname Kabulleri", sc23_updates: "Güncellemeler", sc23_lisans_ozet: "Lisans Özeti", sc23_lisans_durumlari: "Lisans Durumları" })[name] || titleCase(name);
 }
