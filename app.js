@@ -34,8 +34,10 @@ function init() {
   });
   window.addEventListener("online", updateOnlineState);
   window.addEventListener("offline", updateOnlineState);
+  window.addEventListener("resize", syncActionPlacement);
   updateOnlineState();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+  syncActionPlacement();
   $("passwordInput").focus();
 }
 
@@ -110,6 +112,7 @@ async function loadRows() {
     $("detailContent").className = "detail-empty";
     $("detailContent").textContent = "Detayları görmek için bir kayıt seçin.";
     $("licenseActions").hidden = true;
+    syncActionPlacement();
     $("recordTitle").textContent = tableTitle(table);
     renderRows();
     renderSummary();
@@ -159,6 +162,7 @@ function selectRow(row) {
   });
   content.replaceChildren(dl);
   $("licenseActions").hidden = !$("tableSelect").value.includes("license_machines");
+  syncActionPlacement();
 }
 
 async function updateLicense(action) {
@@ -225,6 +229,14 @@ function runtimeStatus(row) {
 }
 function statusRank(status) { return ["Admin", "Aktif", "Deneme", "Bekleyen", "Süresi Dolan", "Pasif"].indexOf(status); }
 function statusClass(status) { return ({ Admin: "admin", Aktif: "active", Deneme: "trial", Bekleyen: "pending", "Süresi Dolan": "expired", Pasif: "revoked" })[status] || ""; }
+function syncActionPlacement() {
+  const actions = $("licenseActions");
+  const mobileSlot = $("mobileActionSlot");
+  const detailPanel = $("detailPanel");
+  if (!actions || !mobileSlot || !detailPanel) return;
+  const target = window.matchMedia("(max-width: 620px)").matches ? mobileSlot : detailPanel;
+  if (actions.parentElement !== target) target.append(actions);
+}
 function visibleTables(tables) {
   const allowed = tables.filter(name => {
     const value = `${name}`.toLocaleLowerCase("tr");
