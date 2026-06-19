@@ -196,7 +196,25 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
   .workspace { padding-left: 10px; padding-right: 10px; }
   .record { grid-template-columns: 76px minmax(0, 1fr); }
   .record time { display: none; }
-  .license-actions { grid-template-columns: 1fr; }
+  .detail-panel { overflow: visible; }
+  .detail-panel .section-heading { order: -2; }
+  .license-actions {
+    order: -1;
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top));
+    z-index: 5;
+    margin: -2px 0 14px;
+    padding: 10px;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: rgba(255, 255, 255, .96);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, .12);
+    backdrop-filter: blur(10px);
+  }
+  .license-actions button { min-height: 42px; padding: 0 10px; font-size: 13px; }
+  .license-actions .danger { grid-column: 1 / -1; }
   .detail-fields { grid-template-columns: 1fr; }
   .detail-fields dt { padding-bottom: 2px; border-bottom: 0; }
   .detail-fields dd { padding-top: 2px; }
