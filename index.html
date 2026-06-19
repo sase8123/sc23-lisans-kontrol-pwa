@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#08111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SC23 Lisans">
+  <title>SC23 Lisans Kontrol</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <section id="lockView" class="lock-view">
+    <form id="loginForm" class="login-panel">
+      <img src="icons/icon-192.png" alt="" class="login-icon">
+      <div>
+        <p class="eyebrow">Güvenli yönetim</p>
+        <h1>SC23 Lisans Kontrol</h1>
+      </div>
+      <label class="field">
+        <span>Program şifresi</span>
+        <input id="passwordInput" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="primary wide" type="submit">Giriş Yap</button>
+      <p id="loginError" class="error" role="alert"></p>
+    </form>
+  </section>
+
+  <main id="appView" class="app" hidden>
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon-192.png" alt="">
+        <div><small>Yönetim paneli</small><strong>SC23 Lisans Kontrol</strong></div>
+      </div>
+      <div class="top-actions">
+        <button id="installButton" class="ghost" hidden>Telefona Ekle</button>
+        <button id="refreshButton" class="primary">Yenile</button>
+      </div>
+    </header>
+
+    <section class="filters">
+      <label class="field grow">
+        <span>Arama</span>
+        <input id="searchInput" type="search" placeholder="Ad, e-posta, makine kodu...">
+      </label>
+      <label class="field">
+        <span>Supabase projesi</span>
+        <select id="projectSelect"><option value="">Proje seçin</option></select>
+      </label>
+      <label class="field">
+        <span>Kayıt türü</span>
+        <select id="tableSelect"><option value="">Kayıt türü seçin</option></select>
+      </label>
+      <button id="projectsButton" class="secondary">Projeleri Yenile</button>
+    </section>
+
+    <section id="summary" class="summary" aria-label="Kayıt özeti"></section>
+
+    <section class="workspace">
+      <div class="records-panel">
+        <div class="section-heading">
+          <div><small>Güncel kayıtlar</small><h2 id="recordTitle">Kayıtlar</h2></div>
+          <span id="recordCount" class="count">0 kayıt</span>
+        </div>
+        <div id="records" class="records"></div>
+        <div id="emptyState" class="empty">Bağlantı kurulduğunda kayıtlar burada görünecek.</div>
+      </div>
+
+      <aside id="detailPanel" class="detail-panel">
+        <div class="section-heading">
+          <div><small>Seçili kayıt</small><h2>Kayıt Detayı</h2></div>
+          <button id="pdfButton" class="icon-button" title="PDF olarak dışarı aktar">PDF</button>
+        </div>
+        <div id="detailContent" class="detail-empty">Detayları görmek için bir kayıt seçin.</div>
+        <div id="licenseActions" class="license-actions" hidden>
+          <button data-license="week">1 Haftalık Lisans Ver</button>
+          <button data-license="month">1 Aylık Lisans Ver</button>
+          <button data-license="year">1 Yıllık Lisans Ver</button>
+          <button data-license="unlimited" class="unlimited">Süresiz Lisans Ver</button>
+          <button id="licenseTimeButton" class="secondary">Lisans Süresi</button>
+          <button data-license="revoke" class="danger">Pasif Yap</button>
+        </div>
+      </aside>
+    </section>
+
+    <footer><span id="statusText">Hazır</span><span id="onlineState"></span></footer>
+  </main>
+
+  <dialog id="messageDialog">
+    <div class="dialog-card message-card">
+      <div class="section-heading"><h2 id="messageTitle">Bilgi</h2><button id="messageClose" class="icon-button">Kapat</button></div>
+      <div id="messageContent" class="message-content"></div>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
