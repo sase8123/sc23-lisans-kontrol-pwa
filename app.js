@@ -234,8 +234,10 @@ function syncActionPlacement() {
   const mobileSlot = $("mobileActionSlot");
   const detailPanel = $("detailPanel");
   if (!actions || !mobileSlot || !detailPanel) return;
-  const target = window.matchMedia("(max-width: 620px)").matches ? mobileSlot : detailPanel;
+  const isMobile = window.matchMedia("(max-width: 620px)").matches;
+  const target = isMobile ? mobileSlot : detailPanel;
   if (actions.parentElement !== target) target.append(actions);
+  document.body.classList.toggle("has-mobile-actions", isMobile && !actions.hidden);
 }
 function visibleTables(tables) {
   const allowed = tables.filter(name => {
