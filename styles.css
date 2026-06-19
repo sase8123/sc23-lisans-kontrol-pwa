@@ -199,9 +199,12 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
   .record time { display: none; }
   .mobile-action-slot { display: block; }
   .mobile-action-slot:empty { display: none; }
+  body.has-mobile-actions .mobile-action-slot { min-height: 162px; }
   .license-actions {
-    position: sticky;
+    position: fixed;
     top: max(8px, env(safe-area-inset-top));
+    left: 10px;
+    right: 10px;
     z-index: 5;
     margin: 0 0 12px;
     padding: 10px;
