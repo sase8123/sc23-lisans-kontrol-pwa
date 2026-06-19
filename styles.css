@@ -168,6 +168,7 @@ button { min-height: 44px; padding: 0 18px; border-radius: 6px; font-weight: 700
 .license-actions { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .license-actions button { background: #14b8a6; color: #fff; }
 .license-actions .unlimited { background: #0f7f77; }
+.mobile-action-slot { display: none; }
 
 footer { min-height: 38px; background: var(--navy); color: #aebed0; display: flex; justify-content: space-between; align-items: center; padding: 0 24px max(0px, env(safe-area-inset-bottom)); font-size: 12px; }
 
@@ -196,14 +197,13 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
   .workspace { padding-left: 10px; padding-right: 10px; }
   .record { grid-template-columns: 76px minmax(0, 1fr); }
   .record time { display: none; }
-  .detail-panel { overflow: visible; }
-  .detail-panel .section-heading { order: -2; }
+  .mobile-action-slot { display: block; }
+  .mobile-action-slot:empty { display: none; }
   .license-actions {
-    order: -1;
     position: sticky;
     top: max(8px, env(safe-area-inset-top));
     z-index: 5;
-    margin: -2px 0 14px;
+    margin: 0 0 12px;
     padding: 10px;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
@@ -214,7 +214,6 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
     backdrop-filter: blur(10px);
   }
   .license-actions button { min-height: 42px; padding: 0 10px; font-size: 13px; }
-  .license-actions .danger { grid-column: 1 / -1; }
   .detail-fields { grid-template-columns: 1fr; }
   .detail-fields dt { padding-bottom: 2px; border-bottom: 0; }
   .detail-fields dd { padding-top: 2px; }
