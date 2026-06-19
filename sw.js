@@ -1,4 +1,4 @@
-const CACHE = "sc23-lisans-v4";
+const CACHE = "sc23-lisans-v5";
 const ASSETS = ["./", "index.html", "styles.css", "app.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", event => {
