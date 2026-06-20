@@ -99,7 +99,7 @@ async function selectProject() {
     const select = $("tableSelect");
     select.innerHTML = "";
     const shownTables = visibleTables(tables);
-    shownTables.forEach(table => select.add(new Option(tableTitle(table), table)));
+    tableOptions(shownTables).forEach(item => select.add(new Option(item.label, item.name)));
     if (shownTables.length) await loadRows();
   });
 }
@@ -244,23 +244,25 @@ function syncActionPlacement() {
   document.body.classList.toggle("actions-floating", shouldFloat);
 }
 function visibleTables(tables) {
-  const allowed = tables.filter(name => {
+  return tables.filter(name => {
     const value = `${name}`.toLocaleLowerCase("tr");
     if (value.startsWith("rpc")) return false;
     if (value.includes("rprcls")) return false;
     if (value.includes("auto_enable")) return false;
-    return value.startsWith("sc23_")
-      || value.includes("license")
-      || value.includes("lisans")
-      || value.includes("sartname")
-      || value.includes("şartname")
-      || value.includes("terms")
-      || value.includes("update");
+    if (value.includes("graphql")) return false;
+    return true;
   });
-  return allowed.length ? allowed : tables.filter(name => !`${name}`.toLocaleLowerCase("tr").startsWith("rpc"));
+}
+function tableOptions(tables) {
+  const counts = new Map();
+  tables.forEach(name => counts.set(tableTitle(name), (counts.get(tableTitle(name)) || 0) + 1));
+  return tables.map(name => {
+    const title = tableTitle(name);
+    return { name, label: counts.get(title) > 1 ? `${title} (${name})` : title };
+  });
 }
 function tableTitle(name) {
-  return ({ sc23_license_machines: "Lisans Makineleri", sc23_license_events: "Lisans Olayları", sc23_terms_archive: "Şartname Arşivi", sc23_sartname_kabulleri: "Şartname Kabulleri", sc23_updates: "Güncellemeler", sc23_lisans_ozet: "Lisans Özeti", sc23_lisans_durumlari: "Lisans Durumları" })[name] || titleCase(name);
+  return ({ sc23_license_machines: "Lisans Makineleri", sc23_license_events: "Lisans Olayları", site_events: "Site Olayları", sc23_terms_archive: "Şartname Arşivi", sc23_sartname_kabulleri: "Şartname Kabulleri", sc23_updates: "Güncellemeler", sc23_lisans_ozet: "Lisans Özeti", sc23_lisans_durumlari: "Lisans Durumları" })[name] || titleCase(name);
 }
 function first(row, ...keys) { return keys.map(key => row?.[key]).find(value => value !== null && value !== undefined && `${value}`.trim())?.toString() || ""; }
 function truthy(value) { return value === true || value === 1 || value === "true"; }
