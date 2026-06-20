@@ -206,11 +206,14 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
     top: max(8px, env(safe-area-inset-top));
     z-index: 5;
     padding: 10px;
-    background: rgba(255, 255, 255, .96);
+    background: #fff;
     border: 1px solid var(--line);
     border-radius: 8px;
-    box-shadow: 0 14px 28px rgba(15, 23, 42, .12);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, .12);
+    contain: layout paint;
+    overflow-anchor: none;
+    transform: translateZ(0);
+    will-change: transform;
   }
   .license-actions {
     margin: 0 0 12px;
