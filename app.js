@@ -23,6 +23,7 @@ function init() {
   $("tableSelect").addEventListener("change", loadRows);
   $("searchInput").addEventListener("input", renderRows);
   $("pdfButton").addEventListener("click", exportPdf);
+  $("mobilePdfButton").addEventListener("click", exportPdf);
   $("licenseTimeButton").addEventListener("click", showLicenseTime);
   $("messageClose").addEventListener("click", () => $("messageDialog").close());
   $("installButton").addEventListener("click", installPwa);
@@ -233,11 +234,16 @@ function statusClass(status) { return ({ Admin: "admin", Aktif: "active", Deneme
 function syncActionPlacement() {
   const actions = $("licenseActions");
   const mobileSlot = $("mobileActionSlot");
+  const mobilePdf = $("mobilePdfButton");
   const detailPanel = $("detailPanel");
   if (!actions || !mobileSlot || !detailPanel) return;
   const isMobile = window.matchMedia("(max-width: 620px)").matches;
   const target = isMobile ? mobileSlot : detailPanel;
   if (actions.parentElement !== target) target.append(actions);
+  if (isMobile && mobilePdf && mobilePdf.previousElementSibling !== actions) {
+    mobileSlot.insertBefore(actions, mobilePdf);
+  }
+  if (mobilePdf) mobilePdf.hidden = !(isMobile && !actions.hidden);
   const hasMobileActions = isMobile && !actions.hidden;
   const shouldFloat = hasMobileActions && mobileSlot.getBoundingClientRect().top <= 8;
   document.body.classList.toggle("has-mobile-actions", hasMobileActions);
