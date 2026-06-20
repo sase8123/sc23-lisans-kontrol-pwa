@@ -98,7 +98,7 @@ async function selectProject() {
     const tables = await request(`api/tables?projectRef=${encodeURIComponent(state.projectRef)}`);
     const select = $("tableSelect");
     select.innerHTML = "";
-    const shownTables = visibleTables(tables);
+    const shownTables = visibleTables(withVirtualTables(tables));
     tableOptions(shownTables).forEach(item => select.add(new Option(item.label, item.name)));
     if (shownTables.length) await loadRows();
   });
@@ -108,7 +108,9 @@ async function loadRows() {
   const table = $("tableSelect").value;
   if (!table || !state.projectRef) return;
   await busy("Kayıtlar yenileniyor...", async () => {
-    state.rows = await request(`api/rows?projectRef=${encodeURIComponent(state.projectRef)}&table=${encodeURIComponent(table)}`);
+    const apiTable = queryTableName(table);
+    const rows = await request(`api/rows?projectRef=${encodeURIComponent(state.projectRef)}&table=${encodeURIComponent(apiTable)}`);
+    state.rows = isTermsAcceptanceTable(table) ? rows.filter(isTermsAcceptanceRow) : rows;
     state.selected = null;
     $("detailContent").className = "detail-empty";
     $("detailContent").textContent = "Detayları görmek için bir kayıt seçin.";
@@ -153,7 +155,9 @@ function selectRow(row) {
   content.className = "";
   const dl = document.createElement("dl");
   dl.className = "detail-fields";
-  const preferred = ["customer_name", "customer_email", "machine_code", "computer_name", "user_name", "product", "ip_address", "city", "region", "country", "created_at", "first_seen_at", "last_seen_at", "expires_at", "install_accepted_at", "terms_version", "accepted_terms_hash", "accepted_terms_text"];
+  const preferred = isTermsAcceptanceTable($("tableSelect").value) || isTermsAcceptanceRow(row)
+    ? termsAcceptanceKeys()
+    : ["customer_name", "customer_email", "machine_code", "computer_name", "user_name", "product", "ip_address", "city", "region", "country", "created_at", "first_seen_at", "last_seen_at", "expires_at", "install_accepted_at", "terms_version", "accepted_terms_hash", "accepted_terms_text"];
   const keys = [...new Set([...preferred.filter(key => key in row), ...Object.keys(row)])];
   keys.forEach(key => {
     const dt = document.createElement("dt");
@@ -198,10 +202,11 @@ async function showLicenseTime() {
 function exportPdf() {
   if (!state.selected) return showMessage("PDF", "Önce bir kayıt seçin.");
   const table = $("tableSelect").value;
-  const title = `${tableTitle(table)} Raporu`;
+  const isTermsReport = isTermsAcceptanceTable(table) || isTermsAcceptanceRow(state.selected);
+  const title = isTermsReport ? "Şartname Kabul Raporu" : `${tableTitle(table)} Raporu`;
   const fileTitle = `${first(state.selected, "customer_name", "user_name", "computer_name", "machine_code") || "SC23_Kayit"}_SC23_Rapor`;
-  const keys = Object.keys(state.selected);
-  const rows = keys.map(key => `<tr><th>${escapeHtml(labels[key] || titleCase(key))}</th><td>${escapeHtml(displayValue(state.selected[key]))}</td></tr>`).join("");
+  const reportRows = isTermsReport ? termsAcceptanceReportRows(state.selected) : genericReportRows(state.selected);
+  const rows = reportRows.map(item => `<tr><th>${escapeHtml(item.label)}</th><td>${escapeHtml(item.value)}</td></tr>`).join("");
   const popup = window.open("", "_blank", "width=900,height=1100");
   if (!popup) {
     showMessage("PDF", "Tarayıcı yeni pencereyi engelledi. Açılır pencereye izin verip tekrar deneyin.");
@@ -270,6 +275,90 @@ function syncActionPlacement() {
   const shouldFloat = hasMobileActions && mobileSlot.getBoundingClientRect().top <= 8;
   document.body.classList.toggle("has-mobile-actions", hasMobileActions);
   document.body.classList.toggle("actions-floating", shouldFloat);
+}
+function withVirtualTables(tables) {
+  const result = [...new Set(tables)];
+  if (result.includes("sc23_license_machines") && !result.includes("sc23_sartname_kabulleri")) {
+    const index = result.indexOf("sc23_license_machines");
+    result.splice(index + 1, 0, "sc23_sartname_kabulleri");
+  }
+  return result;
+}
+function queryTableName(table) {
+  return isTermsAcceptanceTable(table) ? "sc23_license_machines" : table;
+}
+function isTermsAcceptanceTable(table) {
+  const value = `${table}`.toLocaleLowerCase("tr");
+  return value.includes("sartname_kabul") || value.includes("şartname_kabul") || value.includes("terms_accept");
+}
+function isTermsAcceptanceRow(row) {
+  return !!firstDeep(row,
+    "install_accepted_at", "accepted_at", "kabul_tarihi", "sartlari_kabul_tarihi",
+    "terms_hash", "accepted_terms_hash", "acceptedTermsHash", "sartname_hash"
+  );
+}
+function termsAcceptanceKeys() {
+  return [
+    "install_accepted_at", "accepted_at", "kabul_tarihi", "first_seen_at", "created_at",
+    "last_license_check_at", "last_seen_at", "product", "customer_name", "full_name", "name",
+    "customer_email", "email", "machine_code", "computer_name", "user_name", "ip_address", "ip",
+    "city", "sehir", "region", "country", "country_code", "timezone", "latitude", "longitude",
+    "terms_version", "accepted_terms_version", "version", "terms_hash", "accepted_terms_hash",
+    "hash", "accepted_terms_text", "accepted_text", "terms_text", "content", "body", "text", "id"
+  ];
+}
+function termsAcceptanceReportRows(row) {
+  const fields = [
+    ["Kabul Tarihi", firstDeep(row, "kabul_tarihi", "install_accepted_at", "accepted_at", "sartlari_kabul_tarihi", "created_at")],
+    ["Kurulum Tarihi", firstDeep(row, "first_seen_at", "created_at", "kurulum_tarihi")],
+    ["Son Lisans Kontrolü", firstDeep(row, "last_license_check_at", "last_seen_at", "son_lisans_kontrol_tarihi")],
+    ["Ürün", firstDeep(row, "product", "urun")],
+    ["Ad Soyad", firstDeep(row, "customer_name", "customerName", "full_name", "name", "kullanici_adi", "musteri", "ad_soyad")],
+    ["E-posta", firstDeep(row, "customer_email", "customerEmail", "email", "e_posta", "eposta")],
+    ["Makine Kodu", firstDeep(row, "machine_code", "makine_kodu")],
+    ["Bilgisayar Adı", firstDeep(row, "computer_name", "computerName", "bilgisayar_adi", "bilgisayar")],
+    ["Windows Kullanıcısı", firstDeep(row, "user_name", "userName", "windows_kullanicisi", "kullanici")],
+    ["IP Adresi", firstDeep(row, "ip_address", "ipAddress", "ip", "ip_adresi")],
+    ["Şehir / İl", firstDeep(row, "city", "sehir", "il")],
+    ["Bölge", firstDeep(row, "region", "bolge")],
+    ["Ülke", firstDeep(row, "country", "ulke")],
+    ["Ülke Kodu", firstDeep(row, "country_code", "countryCode", "ulke_kodu")],
+    ["Saat Dilimi", firstDeep(row, "timezone", "saat_dilimi")],
+    ["Enlem", firstDeep(row, "latitude", "enlem")],
+    ["Boylam", firstDeep(row, "longitude", "boylam")],
+    ["Şartname Versiyonu", firstDeep(row, "terms_version", "accepted_terms_version", "acceptedTermsVersion", "version", "sartname_versiyonu")],
+    ["Şartname Hash", firstDeep(row, "terms_hash", "accepted_terms_hash", "acceptedTermsHash", "hash", "sartname_hash")],
+    ["Kabul Edilen Metin", termsAcceptedText(row)],
+    ["Olay ID", firstDeep(row, "olay_id", "event_id", "id")]
+  ];
+  const used = new Set();
+  fields.forEach(([label]) => used.add(label));
+  const rows = fields.filter(([, value]) => `${value || ""}`.trim()).map(([label, value]) => ({ label, value: displayValue(value) }));
+  genericReportRows(row).forEach(item => {
+    if (!used.has(item.label) && item.value !== "-" && item.value.length < 900) rows.push(item);
+  });
+  return rows;
+}
+function genericReportRows(row) {
+  return Object.keys(row).map(key => ({ label: labels[key] || titleCase(key), value: displayValue(row[key]) }));
+}
+function termsAcceptedText(row) {
+  return firstDeep(row,
+    "kabul_edilen_tam_metin", "accepted_terms_text", "accepted_text", "acceptedText",
+    "terms_text", "sartname_tam_metni", "content", "body", "text"
+  );
+}
+function firstDeep(row, ...keys) {
+  const direct = first(row, ...keys);
+  if (direct) return direct;
+  const payload = payloadObject(row);
+  return payload ? first(payload, ...keys) : "";
+}
+function payloadObject(row) {
+  const payload = row?.payload;
+  if (!payload) return null;
+  if (typeof payload === "object") return payload;
+  try { return JSON.parse(payload); } catch { return null; }
 }
 function visibleTables(tables) {
   return tables.filter(name => {
