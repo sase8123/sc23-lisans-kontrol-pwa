@@ -1,4 +1,4 @@
-const state = { session: "", projectRef: "", rows: [], selected: null, deferredInstall: null };
+const state = { session: "", projectRef: "", rows: [], selected: null, deferredInstall: null, termsArchive: {} };
 let scrollStarted = false;
 let placementFrame = 0;
 const $ = id => document.getElementById(id);
@@ -154,8 +154,11 @@ function renderSummary() {
   $("summary").innerHTML = statuses.map(status => `<div class="metric ${statusClass(status)}"><span>${status}</span><strong>${state.rows.filter(row => runtimeStatus(row) === status).length}</strong></div>`).join("");
 }
 
-function selectRow(row) {
+async function selectRow(row) {
   state.selected = row;
+  if (isTermsAcceptanceTable($("tableSelect").value) || isTermsAcceptanceRow(row)) {
+    await ensureTermsAcceptedText(row);
+  }
   renderRows();
   const content = $("detailContent");
   content.className = "";
@@ -205,10 +208,11 @@ async function showLicenseTime() {
   });
 }
 
-function exportPdf() {
+async function exportPdf() {
   if (!state.selected) return showMessage("PDF", "Önce bir kayıt seçin.");
   const table = $("tableSelect").value;
   const isTermsReport = isTermsAcceptanceTable(table) || isTermsAcceptanceRow(state.selected);
+  if (isTermsReport) await ensureTermsAcceptedText(state.selected);
   const title = isTermsReport ? "Şartname Kabul Raporu" : `${tableTitle(table)} Raporu`;
   const fileTitle = `${first(state.selected, "customer_name", "user_name", "computer_name", "machine_code") || "SC23_Kayit"}_SC23_Rapor`;
   const reportRows = isTermsReport ? termsAcceptanceReportRows(state.selected) : genericReportRows(state.selected);
@@ -371,6 +375,52 @@ function payloadObject(row) {
   if (!payload) return null;
   if (typeof payload === "object") return payload;
   try { return JSON.parse(payload); } catch { return null; }
+}
+async function ensureTermsAcceptedText(row) {
+  if (!row || termsAcceptedText(row)) return;
+  const archive = await termsArchiveRows();
+  if (!archive.length) return;
+  const best = archive
+    .map(item => ({ item, score: termsMatchScore(row, item) }))
+    .filter(match => match.score > 0 && termsAcceptedText(match.item))
+    .sort((a, b) => b.score - a.score || dateValue(b.item.created_at || b.item.updated_at) - dateValue(a.item.created_at || a.item.updated_at))[0]?.item;
+  const source = best || archive.find(item => termsAcceptedText(item));
+  const text = source ? termsAcceptedText(source) : "";
+  if (text) {
+    row.accepted_terms_text = text;
+    row.terms_archive_source = first(source, "id", "terms_version", "version", "hash", "terms_hash") || "Şartname arşivi";
+  }
+}
+async function termsArchiveRows() {
+  const projectRef = state.projectRef;
+  if (!projectRef) return [];
+  if (state.termsArchive[projectRef]) return state.termsArchive[projectRef];
+  const tables = ["sc23_terms_archive", "sc23_sartname_arsivi"];
+  const rows = [];
+  for (const table of tables) {
+    try {
+      const result = await request(`api/rows?projectRef=${encodeURIComponent(projectRef)}&table=${encodeURIComponent(table)}`);
+      result.forEach(item => rows.push({ ...item, _archive_table: table }));
+    } catch {
+      // Some projects may not have both archive table names.
+    }
+  }
+  state.termsArchive[projectRef] = rows;
+  return rows;
+}
+function termsMatchScore(row, archiveRow) {
+  const rowProduct = firstDeep(row, "product", "urun").toLocaleLowerCase("tr");
+  const arcProduct = firstDeep(archiveRow, "product", "urun").toLocaleLowerCase("tr");
+  const rowVersion = firstDeep(row, "terms_version", "accepted_terms_version", "acceptedTermsVersion", "version", "sartname_versiyonu");
+  const arcVersion = firstDeep(archiveRow, "terms_version", "accepted_terms_version", "version", "sartname_versiyonu");
+  const rowHash = firstDeep(row, "terms_hash", "accepted_terms_hash", "acceptedTermsHash", "hash", "sartname_hash");
+  const arcHash = firstDeep(archiveRow, "terms_hash", "accepted_terms_hash", "hash", "sartname_hash");
+  let score = 0;
+  if (rowHash && arcHash && rowHash === arcHash) score += 100;
+  if (rowVersion && arcVersion && rowVersion === arcVersion) score += 40;
+  if (rowProduct && arcProduct && rowProduct === arcProduct) score += 20;
+  if (!rowHash && !rowVersion && rowProduct && arcProduct === rowProduct) score += 5;
+  return score;
 }
 function visibleTables(tables) {
   return tables.filter(name => {
