@@ -35,6 +35,7 @@ function init() {
   window.addEventListener("online", updateOnlineState);
   window.addEventListener("offline", updateOnlineState);
   window.addEventListener("resize", syncActionPlacement);
+  window.addEventListener("scroll", syncActionPlacement, { passive: true });
   updateOnlineState();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
   syncActionPlacement();
@@ -237,7 +238,10 @@ function syncActionPlacement() {
   const isMobile = window.matchMedia("(max-width: 620px)").matches;
   const target = isMobile ? mobileSlot : detailPanel;
   if (actions.parentElement !== target) target.append(actions);
-  document.body.classList.toggle("has-mobile-actions", isMobile && !actions.hidden);
+  const hasMobileActions = isMobile && !actions.hidden;
+  const shouldFloat = hasMobileActions && mobileSlot.getBoundingClientRect().top <= 8;
+  document.body.classList.toggle("has-mobile-actions", hasMobileActions);
+  document.body.classList.toggle("actions-floating", shouldFloat);
 }
 function visibleTables(tables) {
   const allowed = tables.filter(name => {
