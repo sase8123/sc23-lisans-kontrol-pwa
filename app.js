@@ -260,15 +260,32 @@ function visibleTables(tables) {
   });
 }
 function tableOptions(tables) {
-  const counts = new Map();
-  tables.forEach(name => counts.set(tableTitle(name), (counts.get(tableTitle(name)) || 0) + 1));
-  return tables.map(name => {
-    const title = tableTitle(name);
-    return { name, label: counts.get(title) > 1 ? `${title} (${name})` : title };
-  });
+  return tables.map(name => ({ name, label: tableTitle(name) }));
 }
 function tableTitle(name) {
-  return ({ sc23_license_machines: "Lisans Makineleri", sc23_license_events: "Lisans Olayları", site_events: "Site Olayları", sc23_terms_archive: "Şartname Arşivi", sc23_sartname_kabulleri: "Şartname Kabulleri", sc23_updates: "Güncellemeler", sc23_lisans_ozet: "Lisans Özeti", sc23_lisans_durumlari: "Lisans Durumları" })[name] || titleCase(name);
+  const known = {
+    sc23_license_machines: "Lisans Makineleri",
+    sc23_license_events: "Lisans Olayları",
+    site_events: "Site Olayları",
+    sc23_terms_archive: "Şartname Metin Arşivi",
+    sc23_sartname_kabulleri: "Şartname Kabul Kayıtları",
+    sc23_updates: "Program Güncellemeleri",
+    sc23_lisans_ozet: "Lisans Özeti",
+    sc23_lisans_durumlari: "Lisans Durumları"
+  };
+  if (known[name]) return known[name];
+  const value = `${name}`.toLocaleLowerCase("tr");
+  if (value.includes("sartname") || value.includes("şartname") || value.includes("terms")) {
+    if (value.includes("kabul") || value.includes("accept")) return "Şartname Kabul Kayıtları";
+    if (value.includes("archive") || value.includes("arsiv") || value.includes("arşiv")) return "Şartname Metin Arşivi";
+    return "Şartname Kayıtları";
+  }
+  if (value.includes("update") || value.includes("guncelle") || value.includes("güncelle")) {
+    if (value.includes("event") || value.includes("log") || value.includes("history")) return "Güncelleme Olayları";
+    if (value.includes("file") || value.includes("package") || value.includes("release")) return "Güncelleme Dosyaları";
+    return "Program Güncellemeleri";
+  }
+  return titleCase(name);
 }
 function first(row, ...keys) { return keys.map(key => row?.[key]).find(value => value !== null && value !== undefined && `${value}`.trim())?.toString() || ""; }
 function truthy(value) { return value === true || value === 1 || value === "true"; }
