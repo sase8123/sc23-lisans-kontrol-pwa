@@ -1,4 +1,6 @@
 const state = { session: "", projectRef: "", rows: [], selected: null, deferredInstall: null };
+let scrollStarted = false;
+let placementFrame = 0;
 const $ = id => document.getElementById(id);
 const API_BASE = "https://llarwagbefhnrpnmrvfu.supabase.co/functions/v1/sc23-lisans-web/";
 
@@ -34,11 +36,15 @@ function init() {
   });
   window.addEventListener("online", updateOnlineState);
   window.addEventListener("offline", updateOnlineState);
-  window.addEventListener("resize", syncActionPlacement);
-  window.addEventListener("scroll", syncActionPlacement, { passive: true });
+  window.addEventListener("resize", scheduleActionPlacement);
+  window.addEventListener("load", () => setTimeout(scheduleActionPlacement, 120));
+  window.addEventListener("scroll", () => {
+    scrollStarted = true;
+    scheduleActionPlacement();
+  }, { passive: true });
   updateOnlineState();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
-  syncActionPlacement();
+  scheduleActionPlacement();
   $("passwordInput").focus();
 }
 
@@ -116,7 +122,7 @@ async function loadRows() {
     $("detailContent").textContent = "Detayları görmek için bir kayıt seçin.";
     $("licenseActions").hidden = true;
     $("recordActions").hidden = true;
-    syncActionPlacement();
+    scheduleActionPlacement();
     $("recordTitle").textContent = tableTitle(table);
     renderRows();
     renderSummary();
@@ -169,7 +175,7 @@ function selectRow(row) {
   content.replaceChildren(dl);
   $("licenseActions").hidden = !$("tableSelect").value.includes("license_machines");
   $("recordActions").hidden = false;
-  syncActionPlacement();
+  scheduleActionPlacement();
 }
 
 async function updateLicense(action) {
@@ -260,6 +266,13 @@ function runtimeStatus(row) {
 }
 function statusRank(status) { return ["Admin", "Aktif", "Deneme", "Bekleyen", "Süresi Dolan", "Pasif"].indexOf(status); }
 function statusClass(status) { return ({ Admin: "admin", Aktif: "active", Deneme: "trial", Bekleyen: "pending", "Süresi Dolan": "expired", Pasif: "revoked" })[status] || ""; }
+function scheduleActionPlacement() {
+  if (placementFrame) return;
+  placementFrame = requestAnimationFrame(() => {
+    placementFrame = 0;
+    syncActionPlacement();
+  });
+}
 function syncActionPlacement() {
   const actions = $("licenseActions");
   const mobileSlot = $("mobileActionSlot");
@@ -272,7 +285,9 @@ function syncActionPlacement() {
   if (recordActions.parentElement !== target) target.append(recordActions);
   if (isMobile && recordActions.previousElementSibling !== actions) target.append(recordActions);
   const hasMobileActions = isMobile && (!actions.hidden || !recordActions.hidden);
-  const shouldFloat = hasMobileActions && mobileSlot.getBoundingClientRect().top <= 8;
+  const isFloating = document.body.classList.contains("actions-floating");
+  const top = mobileSlot.getBoundingClientRect().top;
+  const shouldFloat = hasMobileActions && scrollStarted && (isFloating ? top <= 34 : top <= -18);
   document.body.classList.toggle("has-mobile-actions", hasMobileActions);
   document.body.classList.toggle("actions-floating", shouldFloat);
 }
