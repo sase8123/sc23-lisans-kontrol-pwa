@@ -199,12 +199,8 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
   .record time { display: none; }
   .mobile-action-slot { display: block; }
   .mobile-action-slot:empty { display: none; }
-  body.has-mobile-actions .mobile-action-slot { min-height: 162px; }
+  body.has-mobile-actions.actions-floating .mobile-action-slot { min-height: 162px; }
   .license-actions {
-    position: fixed;
-    top: max(8px, env(safe-area-inset-top));
-    left: 10px;
-    right: 10px;
     z-index: 5;
     margin: 0 0 12px;
     padding: 10px;
@@ -215,6 +211,12 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
     border-radius: 8px;
     box-shadow: 0 14px 28px rgba(15, 23, 42, .12);
     backdrop-filter: blur(10px);
+  }
+  body.actions-floating .license-actions {
+    position: fixed;
+    top: max(8px, env(safe-area-inset-top));
+    left: 10px;
+    right: 10px;
   }
   .license-actions button { min-height: 42px; padding: 0 10px; font-size: 13px; }
   .detail-fields { grid-template-columns: 1fr; }
