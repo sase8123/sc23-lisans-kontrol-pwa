@@ -42,7 +42,9 @@ function init() {
   updateOnlineState();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
   scheduleActionPlacement();
-  $("passwordInput").focus();
+  if (!window.matchMedia("(max-width: 620px), (pointer: coarse)").matches) {
+    $("passwordInput").focus();
+  }
 }
 
 async function unlock(event) {
@@ -277,6 +279,7 @@ function scheduleActionPlacement() {
   });
 }
 function syncActionPlacement() {
+  if ($("appView")?.hidden) return;
   const actions = $("licenseActions");
   const mobileSlot = $("mobileActionSlot");
   const recordActions = $("recordActions");
