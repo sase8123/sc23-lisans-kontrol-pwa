@@ -201,15 +201,10 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
   .record time { display: none; }
   .mobile-action-slot { display: block; }
   .mobile-action-slot:empty { display: none; }
-  body.has-mobile-actions.actions-floating .records-panel { padding-top: 216px; }
-  body.actions-floating .mobile-action-slot {
-    position: fixed;
-    top: max(8px, env(safe-area-inset-top));
-    left: 10px;
-    right: 10px;
-    z-index: 5;
-  }
   body.has-mobile-actions .mobile-action-slot {
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top));
+    z-index: 5;
     padding: 10px;
     background: rgba(255, 255, 255, .96);
     border: 1px solid var(--line);
