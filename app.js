@@ -22,8 +22,7 @@ function init() {
   $("projectSelect").addEventListener("change", selectProject);
   $("tableSelect").addEventListener("change", loadRows);
   $("searchInput").addEventListener("input", renderRows);
-  $("pdfButton").addEventListener("click", exportPdf);
-  $("mobilePdfButton").addEventListener("click", exportPdf);
+  $("recordPdfButton").addEventListener("click", exportPdf);
   $("licenseTimeButton").addEventListener("click", showLicenseTime);
   $("messageClose").addEventListener("click", () => $("messageDialog").close());
   $("installButton").addEventListener("click", installPwa);
@@ -114,6 +113,7 @@ async function loadRows() {
     $("detailContent").className = "detail-empty";
     $("detailContent").textContent = "Detayları görmek için bir kayıt seçin.";
     $("licenseActions").hidden = true;
+    $("recordActions").hidden = true;
     syncActionPlacement();
     $("recordTitle").textContent = tableTitle(table);
     renderRows();
@@ -164,6 +164,7 @@ function selectRow(row) {
   });
   content.replaceChildren(dl);
   $("licenseActions").hidden = !$("tableSelect").value.includes("license_machines");
+  $("recordActions").hidden = false;
   syncActionPlacement();
 }
 
@@ -196,9 +197,32 @@ async function showLicenseTime() {
 
 function exportPdf() {
   if (!state.selected) return showMessage("PDF", "Önce bir kayıt seçin.");
-  document.title = `${first(state.selected, "customer_name", "user_name", "computer_name", "machine_code") || "SC23_Kayit"}_SC23_Rapor`;
-  window.print();
-  setTimeout(() => document.title = "SC23 Lisans Kontrol", 500);
+  const table = $("tableSelect").value;
+  const title = `${tableTitle(table)} Raporu`;
+  const fileTitle = `${first(state.selected, "customer_name", "user_name", "computer_name", "machine_code") || "SC23_Kayit"}_SC23_Rapor`;
+  const keys = Object.keys(state.selected);
+  const rows = keys.map(key => `<tr><th>${escapeHtml(labels[key] || titleCase(key))}</th><td>${escapeHtml(displayValue(state.selected[key]))}</td></tr>`).join("");
+  const popup = window.open("", "_blank", "width=900,height=1100");
+  if (!popup) {
+    showMessage("PDF", "Tarayıcı yeni pencereyi engelledi. Açılır pencereye izin verip tekrar deneyin.");
+    return;
+  }
+  popup.document.open();
+  popup.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${escapeHtml(fileTitle)}</title><style>
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #0f172a; font-family: Arial, "Segoe UI", sans-serif; font-size: 12px; line-height: 1.42; }
+    header { border-bottom: 2px solid #0f766e; padding-bottom: 12px; margin-bottom: 16px; }
+    h1 { margin: 0 0 5px; font-size: 22px; }
+    .meta { color: #64748b; font-size: 11px; }
+    table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    th, td { vertical-align: top; text-align: left; border-bottom: 1px solid #e2e8f0; padding: 8px 7px; }
+    th { width: 34%; color: #475569; font-weight: 700; background: #f8fafc; }
+    td { white-space: pre-wrap; overflow-wrap: anywhere; }
+    @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+  </style></head><body><header><h1>${escapeHtml(title)}</h1><div class="meta">SC23 Lisans Kontrol - ${escapeHtml(new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date()))}</div></header><table>${rows}</table><script>window.onload=()=>{document.title=${JSON.stringify(fileTitle)};setTimeout(()=>window.print(),120)};<\/script></body></html>`);
+  popup.document.close();
 }
 
 async function installPwa() {
@@ -234,14 +258,15 @@ function statusClass(status) { return ({ Admin: "admin", Aktif: "active", Deneme
 function syncActionPlacement() {
   const actions = $("licenseActions");
   const mobileSlot = $("mobileActionSlot");
-  const mobilePdf = $("mobilePdfButton");
+  const recordActions = $("recordActions");
   const detailPanel = $("detailPanel");
-  if (!actions || !mobileSlot || !detailPanel) return;
+  if (!actions || !recordActions || !mobileSlot || !detailPanel) return;
   const isMobile = window.matchMedia("(max-width: 620px)").matches;
   const target = isMobile ? mobileSlot : detailPanel;
   if (actions.parentElement !== target) target.append(actions);
-  if (mobilePdf) mobilePdf.hidden = !(isMobile && !actions.hidden);
-  const hasMobileActions = isMobile && !actions.hidden;
+  if (recordActions.parentElement !== target) target.append(recordActions);
+  if (isMobile && recordActions.previousElementSibling !== actions) target.append(recordActions);
+  const hasMobileActions = isMobile && (!actions.hidden || !recordActions.hidden);
   const shouldFloat = hasMobileActions && mobileSlot.getBoundingClientRect().top <= 8;
   document.body.classList.toggle("has-mobile-actions", hasMobileActions);
   document.body.classList.toggle("actions-floating", shouldFloat);
