@@ -11,7 +11,9 @@ const labels = {
   expires_at: "Lisans Bitişi", licensed: "Lisanslı", revoked: "Pasif", is_admin: "Admin",
   accepted_terms_text: "Kabul Edilen Metin", accepted_terms_hash: "Şartname Hash",
   install_accepted_at: "Kabul Tarihi", terms_version: "Şartname Sürümü", event_type: "Olay Türü",
-  event: "Olay", payload: "İşlem Bilgisi", version: "Sürüm", title: "Başlık", hash: "Hash"
+  event: "Olay", payload: "İşlem Bilgisi", version: "Sürüm", app_version: "Uygulama Sürümü",
+  last_license_check_app_version: "Son Kontrol Sürümü", os_version: "İşletim Sistemi",
+  client_version: "İstemci Sürümü", program_version: "Program Sürümü", title: "Başlık", hash: "Hash"
 };
 
 document.addEventListener("DOMContentLoaded", init);
@@ -161,7 +163,7 @@ async function selectRow(row) {
   dl.className = "detail-fields";
   const preferred = isTermsAcceptanceTable($("tableSelect").value) || isTermsAcceptanceRow(row)
     ? termsAcceptanceKeys()
-    : ["customer_name", "customer_email", "machine_code", "computer_name", "user_name", "product", "ip_address", "city", "region", "country", "created_at", "first_seen_at", "last_seen_at", "expires_at", "install_accepted_at", "terms_version", "accepted_terms_hash", "accepted_terms_text"];
+    : ["customer_name", "customer_email", "machine_code", "computer_name", "user_name", "product", "app_version", "last_license_check_app_version", "os_version", "version", "client_version", "program_version", "ip_address", "city", "region", "country", "created_at", "first_seen_at", "last_seen_at", "expires_at", "install_accepted_at", "terms_version", "accepted_terms_hash", "accepted_terms_text"];
   const keys = [...new Set([...preferred.filter(key => key in row), ...Object.keys(row)])];
   keys.forEach(key => {
     const dt = document.createElement("dt");
