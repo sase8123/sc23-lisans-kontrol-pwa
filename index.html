@@ -11,7 +11,7 @@
   <title>SC23 Lisans Kontrol</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
   <section id="lockView" class="lock-view">
@@ -74,7 +74,6 @@
       <aside id="detailPanel" class="detail-panel">
         <div class="section-heading">
           <div><small>Seçili kayıt</small><h2>Kayıt Detayı</h2></div>
-          <button id="pdfButton" class="icon-button" title="PDF olarak dışarı aktar">PDF</button>
         </div>
         <div id="detailContent" class="detail-empty">Detayları görmek için bir kayıt seçin.</div>
         <div id="licenseActions" class="license-actions" hidden>
@@ -84,7 +83,9 @@
           <button data-license="unlimited" class="unlimited">Süresiz Lisans Ver</button>
           <button id="licenseTimeButton" class="secondary">Lisans Süresi</button>
           <button data-license="revoke" class="danger">Pasif Yap</button>
-          <button id="mobilePdfButton" class="mobile-pdf-button" type="button">PDF Olarak Dışarı Ver</button>
+        </div>
+        <div id="recordActions" class="record-actions" hidden>
+          <button id="recordPdfButton" class="pdf-action-button" type="button">PDF Olarak Dışarı Ver</button>
         </div>
       </aside>
     </section>
@@ -99,6 +100,6 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>
