@@ -209,16 +209,24 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
     right: 10px;
     z-index: 5;
   }
-  .license-actions {
-    margin: 0 0 12px;
+  body.has-mobile-actions .mobile-action-slot {
     padding: 10px;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
     background: rgba(255, 255, 255, .96);
     border: 1px solid var(--line);
     border-radius: 8px;
     box-shadow: 0 14px 28px rgba(15, 23, 42, .12);
     backdrop-filter: blur(10px);
+  }
+  .license-actions {
+    margin: 0 0 12px;
+    padding: 0;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
   }
   .license-actions button { min-height: 42px; padding: 0 10px; font-size: 13px; }
   .record-actions { margin-top: 0; }
