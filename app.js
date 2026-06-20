@@ -210,8 +210,10 @@ async function exportPdf() {
   if (isTermsReport) await ensureTermsAcceptedText(state.selected);
   const title = isTermsReport ? "Şartname Kabul Raporu" : `${tableTitle(table)} Raporu`;
   const fileTitle = `${first(state.selected, "customer_name", "user_name", "computer_name", "machine_code") || "SC23_Kayit"}_SC23_Rapor`;
-  const reportRows = isTermsReport ? termsAcceptanceReportRows(state.selected) : genericReportRows(state.selected);
-  const rows = reportRows.map(item => `<tr><th>${escapeHtml(item.label)}</th><td>${escapeHtml(item.value)}</td></tr>`).join("");
+  const reportRows = cleanPdfRows(isTermsReport ? termsAcceptanceReportRows(state.selected) : genericReportRows(state.selected));
+  const rows = reportRows.length
+    ? reportRows.map(item => `<tr><th>${escapeHtml(item.label)}</th><td>${escapeHtml(item.value)}</td></tr>`).join("")
+    : `<tr><th>Bilgi</th><td>Bu kayıtta PDF'e aktarılacak dolu bilgi bulunamadı.</td></tr>`;
   const popup = window.open("", "_blank", "width=900,height=1100");
   if (!popup) {
     showMessage("PDF", "Tarayıcı yeni pencereyi engelledi. Açılır pencereye izin verip tekrar deneyin.");
@@ -352,6 +354,12 @@ function termsAcceptanceReportRows(row) {
 }
 function genericReportRows(row) {
   return Object.keys(row).map(key => ({ label: labels[key] || titleCase(key), value: displayValue(row[key]) }));
+}
+function cleanPdfRows(rows) {
+  return rows.filter(item => {
+    const value = `${item.value || ""}`.trim();
+    return value && value !== "-" && value !== "{}" && value !== "[]";
+  });
 }
 function termsAcceptedText(row) {
   return firstDeep(row,
