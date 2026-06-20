@@ -169,6 +169,7 @@ button { min-height: 44px; padding: 0 18px; border-radius: 6px; font-weight: 700
 .license-actions button { background: #14b8a6; color: #fff; }
 .license-actions .unlimited { background: #0f7f77; }
 .mobile-action-slot { display: none; }
+.mobile-pdf-button { display: none; }
 
 footer { min-height: 38px; background: var(--navy); color: #aebed0; display: flex; justify-content: space-between; align-items: center; padding: 0 24px max(0px, env(safe-area-inset-bottom)); font-size: 12px; }
 
@@ -199,7 +200,7 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
   .record time { display: none; }
   .mobile-action-slot { display: block; }
   .mobile-action-slot:empty { display: none; }
-  body.has-mobile-actions.actions-floating .mobile-action-slot { min-height: 162px; }
+  body.has-mobile-actions.actions-floating .mobile-action-slot { min-height: 216px; }
   .license-actions {
     z-index: 5;
     margin: 0 0 12px;
@@ -219,6 +220,14 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
     right: 10px;
   }
   .license-actions button { min-height: 42px; padding: 0 10px; font-size: 13px; }
+  .mobile-pdf-button {
+    display: block;
+    width: 100%;
+    min-height: 42px;
+    margin-top: 8px;
+    background: #334155;
+    color: #fff;
+  }
   .detail-fields { grid-template-columns: 1fr; }
   .detail-fields dt { padding-bottom: 2px; border-bottom: 0; }
   .detail-fields dd { padding-top: 2px; }
