@@ -285,11 +285,8 @@ function syncActionPlacement() {
   if (recordActions.parentElement !== target) target.append(recordActions);
   if (isMobile && recordActions.previousElementSibling !== actions) target.append(recordActions);
   const hasMobileActions = isMobile && (!actions.hidden || !recordActions.hidden);
-  const isFloating = document.body.classList.contains("actions-floating");
-  const top = mobileSlot.getBoundingClientRect().top;
-  const shouldFloat = hasMobileActions && scrollStarted && (isFloating ? top <= 34 : top <= -18);
   document.body.classList.toggle("has-mobile-actions", hasMobileActions);
-  document.body.classList.toggle("actions-floating", shouldFloat);
+  document.body.classList.remove("actions-floating");
 }
 function withVirtualTables(tables) {
   const result = [...new Set(tables)];
