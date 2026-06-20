@@ -1,5 +1,4 @@
 const state = { session: "", projectRef: "", rows: [], selected: null, deferredInstall: null, termsArchive: {} };
-let scrollStarted = false;
 let placementFrame = 0;
 const $ = id => document.getElementById(id);
 const API_BASE = "https://llarwagbefhnrpnmrvfu.supabase.co/functions/v1/sc23-lisans-web/";
@@ -38,10 +37,6 @@ function init() {
   window.addEventListener("offline", updateOnlineState);
   window.addEventListener("resize", scheduleActionPlacement);
   window.addEventListener("load", () => setTimeout(scheduleActionPlacement, 120));
-  window.addEventListener("scroll", () => {
-    scrollStarted = true;
-    scheduleActionPlacement();
-  }, { passive: true });
   updateOnlineState();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
   scheduleActionPlacement();
