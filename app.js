@@ -240,9 +240,6 @@ function syncActionPlacement() {
   const isMobile = window.matchMedia("(max-width: 620px)").matches;
   const target = isMobile ? mobileSlot : detailPanel;
   if (actions.parentElement !== target) target.append(actions);
-  if (isMobile && mobilePdf && mobilePdf.previousElementSibling !== actions) {
-    mobileSlot.insertBefore(actions, mobilePdf);
-  }
   if (mobilePdf) mobilePdf.hidden = !(isMobile && !actions.hidden);
   const hasMobileActions = isMobile && !actions.hidden;
   const shouldFloat = hasMobileActions && mobileSlot.getBoundingClientRect().top <= 8;
