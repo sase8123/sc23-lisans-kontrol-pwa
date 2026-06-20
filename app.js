@@ -4,6 +4,7 @@ const $ = id => document.getElementById(id);
 const API_BASE = "https://llarwagbefhnrpnmrvfu.supabase.co/functions/v1/sc23-lisans-web/";
 
 const labels = {
+  __runtime_status: "Durum", __runtime_status_detail: "Durum Açıklaması",
   id: "Kayıt ID", product: "Ürün", machine_code: "Makine Kodu", customer_name: "Ad Soyad",
   customer_email: "E-posta", computer_name: "Bilgisayar Adı", user_name: "Kullanıcı Adı",
   ip_address: "IP Adresi", city: "Şehir", region: "Bölge", country: "Ülke",
@@ -163,17 +164,16 @@ async function selectRow(row) {
   content.className = "";
   const dl = document.createElement("dl");
   dl.className = "detail-fields";
+  const isLicenseMachine = $("tableSelect").value.includes("license_machines");
+  if (isLicenseMachine) {
+    appendDetailField(dl, labels.__runtime_status, runtimeStatus(row));
+    appendDetailField(dl, labels.__runtime_status_detail, runtimeStatusDetail(row));
+  }
   const preferred = isTermsAcceptanceTable($("tableSelect").value) || isTermsAcceptanceRow(row)
     ? termsAcceptanceKeys()
     : ["customer_name", "customer_email", "machine_code", "computer_name", "user_name", "product", "app_version", "last_license_check_app_version", "os_version", "version", "client_version", "program_version", "ip_address", "city", "region", "country", "created_at", "first_seen_at", "last_seen_at", "expires_at", "install_accepted_at", "terms_version", "accepted_terms_hash", "accepted_terms_text"];
   const keys = [...new Set([...preferred.filter(key => key in row), ...Object.keys(row)])];
-  keys.forEach(key => {
-    const dt = document.createElement("dt");
-    const dd = document.createElement("dd");
-    dt.textContent = labels[key] || titleCase(key);
-    dd.textContent = displayValue(row[key]);
-    dl.append(dt, dd);
-  });
+  keys.forEach(key => appendDetailField(dl, labels[key] || titleCase(key), displayValue(row[key])));
   content.replaceChildren(dl);
   $("licenseActions").hidden = !$("tableSelect").value.includes("license_machines");
   $("recordActions").hidden = false;
@@ -268,6 +268,28 @@ function runtimeStatus(row) {
   if (truthy(row.licensed)) return "Aktif";
   if (row.first_seen_at && dateValue(row.first_seen_at) + 3 * 86400000 > Date.now()) return "Deneme";
   return "Bekleyen";
+}
+function runtimeStatusDetail(row) {
+  const lastCheck = first(row, "last_license_check_at");
+  const control = lastCheck
+    ? `AutoCAD kontrol var - Son kontrol: ${formatDate(lastCheck)}`
+    : "AutoCAD kontrol yok";
+  const description = ({
+    Admin: "Admin lisansı",
+    Aktif: "Aktif lisans",
+    Deneme: "3 günlük deneme",
+    Bekleyen: "Onay bekliyor",
+    "Süresi Dolan": "Lisans süresi dolmuş",
+    Pasif: "Pasif / iptal edilmiş"
+  })[runtimeStatus(row)] || runtimeStatus(row);
+  return `${description} - ${control}`;
+}
+function appendDetailField(host, label, value) {
+  const dt = document.createElement("dt");
+  const dd = document.createElement("dd");
+  dt.textContent = label;
+  dd.textContent = value;
+  host.append(dt, dd);
 }
 function statusRank(status) { return ["Admin", "Aktif", "Deneme", "Bekleyen", "Süresi Dolan", "Pasif"].indexOf(status); }
 function statusClass(status) { return ({ Admin: "admin", Aktif: "active", Deneme: "trial", Bekleyen: "pending", "Süresi Dolan": "expired", Pasif: "revoked" })[status] || ""; }
