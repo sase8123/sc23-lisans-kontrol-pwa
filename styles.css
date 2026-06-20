@@ -222,9 +222,10 @@ dialog::backdrop { background: #07101fc4; backdrop-filter: blur(4px); }
   .license-actions button { min-height: 42px; padding: 0 10px; font-size: 13px; }
   .mobile-pdf-button {
     display: block;
+    grid-column: 1 / -1;
     width: 100%;
     min-height: 42px;
-    margin-top: 8px;
+    margin-top: 0;
     background: #334155;
     color: #fff;
   }
