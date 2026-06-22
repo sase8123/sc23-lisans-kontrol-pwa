@@ -164,7 +164,7 @@ async function selectRow(row) {
   content.className = "";
   const dl = document.createElement("dl");
   dl.className = "detail-fields";
-  const isLicenseMachine = $("tableSelect").value.includes("license_machines");
+  const isLicenseMachine = isLicenseTable($("tableSelect").value);
   if (isLicenseMachine) {
     appendDetailField(dl, labels.__runtime_status, runtimeStatus(row));
     appendDetailField(dl, labels.__runtime_status_detail, runtimeStatusDetail(row));
@@ -175,7 +175,7 @@ async function selectRow(row) {
   const keys = [...new Set([...preferred.filter(key => key in row), ...Object.keys(row)])];
   keys.forEach(key => appendDetailField(dl, labels[key] || titleCase(key), displayValue(row[key])));
   content.replaceChildren(dl);
-  $("licenseActions").hidden = !$("tableSelect").value.includes("license_machines");
+  $("licenseActions").hidden = !isLicenseTable($("tableSelect").value);
   $("recordActions").hidden = false;
   scheduleActionPlacement();
 }
@@ -262,10 +262,11 @@ function showMessage(title, content) {
 }
 
 function runtimeStatus(row) {
-  if (truthy(row.revoked)) return "Pasif";
-  if (truthy(row.is_admin)) return "Admin";
-  if (row.expires_at && dateValue(row.expires_at) < Date.now()) return "Süresi Dolan";
-  if (truthy(row.licensed)) return "Aktif";
+  if (truthy(first(row, "revoked", "is_revoked", "disabled", "is_disabled", "passive", "is_passive"))) return "Pasif";
+  if (truthy(first(row, "is_admin", "admin"))) return "Admin";
+  const expiresAt = first(row, "expires_at", "license_expires_at", "valid_until", "expiry_date", "expires");
+  if (expiresAt && dateValue(expiresAt) < Date.now()) return "Süresi Dolan";
+  if (truthy(first(row, "licensed", "is_licensed", "active", "is_active", "license_active"))) return "Aktif";
   if (row.first_seen_at && dateValue(row.first_seen_at) + 3 * 86400000 > Date.now()) return "Deneme";
   return "Bekleyen";
 }
@@ -336,6 +337,17 @@ function isTermsAcceptanceRow(row) {
     "install_accepted_at", "accepted_at", "kabul_tarihi", "sartlari_kabul_tarihi",
     "terms_hash", "accepted_terms_hash", "acceptedTermsHash", "sartname_hash"
   );
+}
+function isLicenseTable(table) {
+  const value = `${table}`.toLocaleLowerCase("tr");
+  if (["event", "history", "log", "status", "summary", "archive", "terms", "sartname", "şartname", "kabul", "accept", "update", "guncelle", "güncelle"]
+    .some(part => value.includes(part))) return false;
+  return value.includes("license_machine")
+    || value.includes("license_device")
+    || value.includes("lisans_makine")
+    || value.includes("lisans_cihaz")
+    || ["device", "devices", "machine", "machines", "cihaz", "cihazlar", "makine", "makineler", "license", "licenses", "lisans", "lisanslar"].includes(value)
+    || ["_devices", "_machines", "_cihazlar", "_makineler"].some(suffix => value.endsWith(suffix));
 }
 function termsAcceptanceKeys() {
   return [
