@@ -105,7 +105,10 @@ async function selectProject() {
     const select = $("tableSelect");
     select.innerHTML = "";
     const shownTables = visibleTables(withVirtualTables(tables));
-    tableOptions(shownTables).forEach(item => select.add(new Option(item.label, item.name)));
+    const options = tableOptions(shownTables);
+    options.forEach(item => select.add(new Option(item.label, item.name)));
+    const preferred = options.find(item => isLicenseManagementTable(item.name)) || options.find(item => isLicenseTable(item.name)) || options[0];
+    if (preferred) select.value = preferred.name;
     if (shownTables.length) await loadRows();
   });
 }
@@ -344,12 +347,19 @@ function isLicenseTable(table) {
     .some(part => value.includes(part))) return false;
   return value.includes("license_machine")
     || value.includes("license_device")
+    || isLicenseManagementTable(value)
     || (value.includes("license") && value.includes("management"))
     || (value.includes("lisans") && (value.includes("yonetim") || value.includes("yönetim")))
     || value.includes("lisans_makine")
     || value.includes("lisans_cihaz")
     || ["device", "devices", "machine", "machines", "cihaz", "cihazlar", "makine", "makineler", "license", "licenses", "lisans", "lisanslar"].includes(value)
     || ["_devices", "_machines", "_cihazlar", "_makineler"].some(suffix => value.endsWith(suffix));
+}
+function isLicenseManagementTable(table) {
+  const value = `${table}`.toLocaleLowerCase("tr");
+  const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return (normalized.includes("lisans") && (normalized.includes("yonetim") || value.includes("yÃ¶netim") || value.includes("yönetim")))
+    || (normalized.includes("license") && normalized.includes("management"));
 }
 function termsAcceptanceKeys() {
   return [
@@ -483,6 +493,7 @@ function tableOptions(tables) {
 }
 function tableRank(name) {
   const value = `${name}`.toLocaleLowerCase("tr");
+  if (isLicenseManagementTable(value)) return -10;
   if (isLicenseTable(value)) return 0;
   if (value.includes("event") || value.includes("olay")) return 1;
   if (isTermsAcceptanceTable(value)) return 2;
