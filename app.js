@@ -477,7 +477,18 @@ function visibleTables(tables) {
   });
 }
 function tableOptions(tables) {
-  return tables.map(name => ({ name, label: tableTitle(name) }));
+  return [...tables]
+    .sort((a, b) => tableRank(a) - tableRank(b) || tableTitle(a).localeCompare(tableTitle(b), "tr") || a.localeCompare(b))
+    .map(name => ({ name, label: tableTitle(name) }));
+}
+function tableRank(name) {
+  const value = `${name}`.toLocaleLowerCase("tr");
+  if (isLicenseTable(value)) return 0;
+  if (value.includes("event") || value.includes("olay")) return 1;
+  if (isTermsAcceptanceTable(value)) return 2;
+  if (value.includes("terms") || value.includes("sartname") || value.includes("şartname")) return 3;
+  if (value.includes("update") || value.includes("guncelle") || value.includes("güncelle")) return 4;
+  return 10;
 }
 function tableTitle(name) {
   const known = {
