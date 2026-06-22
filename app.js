@@ -344,6 +344,8 @@ function isLicenseTable(table) {
     .some(part => value.includes(part))) return false;
   return value.includes("license_machine")
     || value.includes("license_device")
+    || (value.includes("license") && value.includes("management"))
+    || (value.includes("lisans") && (value.includes("yonetim") || value.includes("yönetim")))
     || value.includes("lisans_makine")
     || value.includes("lisans_cihaz")
     || ["device", "devices", "machine", "machines", "cihaz", "cihazlar", "makine", "makineler", "license", "licenses", "lisans", "lisanslar"].includes(value)
